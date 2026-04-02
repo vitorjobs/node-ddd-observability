@@ -1,6 +1,19 @@
 import { defineConfig } from 'vitepress'
 
+function normalizeBasePath(value?: string) {
+  if (!value) {
+    return '/'
+  }
+
+  const withLeadingSlash = value.startsWith('/') ? value : `/${value}`
+
+  return withLeadingSlash.endsWith('/') ? withLeadingSlash : `${withLeadingSlash}/`
+}
+
+const docsBasePath = normalizeBasePath(process.env.DOCS_BASE_PATH)
+
 export default defineConfig({
+  base: docsBasePath,
   lang: 'pt-BR',
   title: 'Design Soft DDD',
   description: 'Documentação técnica do projeto com DDD, OpenTelemetry e stack local de observabilidade',
