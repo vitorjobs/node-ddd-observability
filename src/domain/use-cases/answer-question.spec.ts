@@ -76,7 +76,6 @@ function makeAnswer(override?: Partial<{
     questionId: 'question-1',
     instructorId: 'instructor-1',
     content: 'Nova resposta',
-    slug: 'nova-resposta',
     ...override,
   })
 }

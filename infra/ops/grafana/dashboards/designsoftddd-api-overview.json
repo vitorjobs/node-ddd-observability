@@ -1,0 +1,530 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "description": "Resumo operacional da API. Use este painel para orientar a leitura dos graficos abaixo.",
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "content": "### Como interpretar este dashboard\n- **Request Rate** mostra o volume total que a API esta atendendo agora.\n- **5xx Error Rate** alto indica falha do servico; **4xx** alto costuma apontar uso invalido do endpoint ou contrato ruim.\n- **HTTP P95 Latency** mostra a experiencia da maioria dos usuarios. Se ele sobe junto com throughput, observe logs e traces.\n- **Use Case Throughput** ajuda a separar problema de rota HTTP de problema de regra de negocio.\n- Comece pelos cards, depois abra as series por rota e por caso de uso.",
+        "mode": "markdown"
+      },
+      "title": "Como Ler Esta Visao",
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "description": "Requisicoes por segundo na API inteira. Queda brusca pode indicar indisponibilidade; subida com latencia estavel costuma ser trafego normal.",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 5
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(designsoftddd_http_server_requests_total{http_route=~\"$route\"}[$__rate_interval]))",
+          "refId": "A"
+        }
+      ],
+      "title": "Request Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "description": "Percentual de respostas 4xx. Alta persistente costuma significar contrato mal utilizado, validacao ruim ou cliente enviando dado incorreto.",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 5
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "expr": "100 * (sum(rate(designsoftddd_http_server_requests_total{http_route=~\"$route\",http_status_class=\"4xx\"}[$__rate_interval])) / clamp_min(sum(rate(designsoftddd_http_server_requests_total{http_route=~\"$route\"}[$__rate_interval])), 0.000001))",
+          "refId": "A"
+        }
+      ],
+      "title": "4xx Error Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "description": "Percentual de respostas 5xx. Qualquer valor sustentado aqui merece investigacao imediata em logs e traces.",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 5
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "expr": "100 * (sum(rate(designsoftddd_http_server_requests_total{http_route=~\"$route\",http_status_class=\"5xx\"}[$__rate_interval])) / clamp_min(sum(rate(designsoftddd_http_server_requests_total{http_route=~\"$route\"}[$__rate_interval])), 0.000001))",
+          "refId": "A"
+        }
+      ],
+      "title": "5xx Error Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "description": "Latencia do percentil 95 das requisicoes HTTP filtradas. Se ela sobe sem aumento de erro, o gargalo costuma ser performance e nao disponibilidade.",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 3,
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 5
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(designsoftddd_http_server_duration_seconds_bucket{http_route=~\"$route\"}[$__rate_interval])))",
+          "refId": "A"
+        }
+      ],
+      "title": "HTTP P95 Latency",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "description": "Volume por rota. Use para identificar qual endpoint esta puxando o trafego total da API.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 10
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (http_route) (rate(designsoftddd_http_server_requests_total[$__rate_interval]))",
+          "legendFormat": "{{http_route}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Requests by Route",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "description": "Percentual de erro por rota. Uma rota isolada subindo aqui normalmente aponta regressao localizada e nao incidente global.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 10
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "100 * (sum by (http_route) (rate(designsoftddd_http_server_requests_total{http_status_class=~\"4xx|5xx\"}[$__rate_interval])) / clamp_min(sum by (http_route) (rate(designsoftddd_http_server_requests_total[$__rate_interval])), 0.000001))",
+          "legendFormat": "{{http_route}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Error Ratio by Route",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "description": "Comparacao entre P50, P95 e P99. Quando o P99 se afasta muito do P95, ha cauda longa e poucas requisicoes muito lentas.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(designsoftddd_http_server_duration_seconds_bucket{http_route=~\"$route\"}[$__rate_interval])))",
+          "legendFormat": "p50",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(designsoftddd_http_server_duration_seconds_bucket{http_route=~\"$route\"}[$__rate_interval])))",
+          "legendFormat": "p95",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(designsoftddd_http_server_duration_seconds_bucket{http_route=~\"$route\"}[$__rate_interval])))",
+          "legendFormat": "p99",
+          "refId": "C"
+        }
+      ],
+      "title": "HTTP Latency Quantiles",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "description": "Volume de casos de uso por resultado. Success deve dominar; crescimento de error indica falha na regra ou dependencia.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 18
+      },
+      "id": 9,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (app_use_case, app_outcome) (rate(designsoftddd_use_case_executions_total{app_use_case=~\"$use_case\"}[$__rate_interval]))",
+          "legendFormat": "{{app_use_case}} • {{app_outcome}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Use Case Throughput by Outcome",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "description": "Latencia de negocio por caso de uso. Se uma operacao esta lenta aqui, o problema tende a estar abaixo da camada HTTP.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 26
+      },
+      "id": 10,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, app_use_case) (rate(designsoftddd_use_case_duration_seconds_bucket[$__rate_interval])))",
+          "legendFormat": "{{app_use_case}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Use Case P95 by Operation",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "description": "Logs estruturados dos casos de uso. Use este painel para identificar rapidamente qual rota e qual regra de negocio geraram o evento.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 26
+      },
+      "id": 11,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": true,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "expr": "{service_name=\"rocketseat-ddd-api\"} |= \"Use case\" |~ \"$use_case\"",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Recent Use Case Logs",
+      "type": "logs"
+    },
+    {
+      "description": "Instrucoes rapidas para abrir traces no Tempo a partir do que este dashboard mostra.",
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 34
+      },
+      "id": 12,
+      "options": {
+        "content": "### Quando abrir o Tempo\n- Abra traces quando **P95** subir ou quando **5xx Error Rate** sair de zero.\n- No Explore do Tempo, comece com: `{ resource.service.name = \"rocketseat-ddd-api\" }`.\n- Para focar em um caso de uso, procure spans com `name = \"$use_case\"` quando o filtro estiver especifico.\n- Cruze com o painel de logs para achar o mesmo fluxo por `trace_id`.",
+        "mode": "markdown"
+      },
+      "title": "Trace Playbook",
+      "type": "text"
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "tags": [
+    "designsoftddd",
+    "api",
+    "observability"
+  ],
+  "templating": {
+    "list": [
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "mimir"
+        },
+        "definition": "label_values(designsoftddd_http_server_requests_total, http_route)",
+        "includeAll": true,
+        "label": "Route",
+        "multi": true,
+        "name": "route",
+        "options": [],
+        "query": {
+          "query": "label_values(designsoftddd_http_server_requests_total, http_route)",
+          "refId": "var-route"
+        },
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "mimir"
+        },
+        "definition": "label_values(designsoftddd_use_case_executions_total, app_use_case)",
+        "includeAll": true,
+        "label": "Use Case",
+        "multi": true,
+        "name": "use_case",
+        "options": [],
+        "query": {
+          "query": "label_values(designsoftddd_use_case_executions_total, app_use_case)",
+          "refId": "var-use_case"
+        },
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "timezone": "browser",
+  "title": "DesignSoftDDD API Overview",
+  "uid": "designsoftddd-api-overview",
+  "version": 2,
+  "weekStart": ""
+}

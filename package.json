@@ -5,21 +5,41 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "start:dev": "node --env-file=.env --import tsx --watch src/server.ts",
+    "start:local": "node --env-file=.env --import tsx src/server.ts",
+    "build": "tsup src --out-dir build",
+    "start": "node --import tsx src/server.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
+    "docs:preview": "vitepress preview docs",
+    "observability:up": "docker compose -f infra/docker-compose.yml up -d --build",
+    "observability:down": "docker compose -f infra/docker-compose.yml down -v",
+    "observability:logs": "docker compose -f infra/docker-compose.yml logs -f",
+    "observability:ps": "docker compose -f infra/docker-compose.yml ps",
+    "observability:smoke": "bash infra/scripts/generate-telemetry.sh"
   },
   "keywords": [],
   "author": "Vítor Guedes",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "^25.0.6",
+    "@types/node": "^25.5.0",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vitepress": "^2.0.0-alpha.17",
     "vitest": "^4.0.17"
+  },
+  "dependencies": {
+    "@fastify/otel": "^0.18.0",
+    "@opentelemetry/api": "^1.9.1",
+    "@opentelemetry/auto-instrumentations-node": "^0.72.0",
+    "@opentelemetry/exporter-metrics-otlp-http": "^0.214.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.214.0",
+    "@opentelemetry/resources": "^2.6.1",
+    "@opentelemetry/sdk-node": "^0.214.0",
+    "fastify": "^5.8.4"
   }
 }

@@ -1,2 +1,9 @@
 node_modules/
 .env
+.codex
+.vscode/
+build/
+dist/
+docs/.vitepress/.temp/
+docs/.vitepress/cache/
+docs/.vitepress/dist/

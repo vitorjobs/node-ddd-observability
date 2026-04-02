@@ -1,0 +1,239 @@
+{
+  "info": {
+    "_postman_id": "6f4f6458-8c96-4e3d-98fb-0b915d6cb5f7",
+    "name": "DesignSoftDDD API",
+    "description": "Collection Postman da API Fastify deste projeto.\n\nFonte de verdade usada nesta collection:\n- src/app.ts\n- src/server.ts\n- .env\n\nEstado validado em 2026-04-01.\n\nComo usar:\n1. Rode a API com `npm run start:dev`.\n2. Importe este arquivo no Postman.\n3. Ajuste as variaveis `scheme`, `host`, `port` e `basePath` se necessario.\n4. Execute as requests para validar a API.\n\nEstrutura pensada para crescer:\n- Crie uma nova pasta por recurso ou contexto.\n- Reaproveite as variaveis da collection para nao duplicar configuracao.\n- Copie o padrao de testes desta collection para os proximos endpoints.\n\nObservacao: hoje a API nao exige autenticacao.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "scheme",
+      "value": "http",
+      "type": "string",
+      "description": "Protocolo usado pela API local ou remota."
+    },
+    {
+      "key": "host",
+      "value": "localhost",
+      "type": "string",
+      "description": "Host da API."
+    },
+    {
+      "key": "port",
+      "value": "3333",
+      "type": "string",
+      "description": "Porta padrao configurada em src/server.ts via process.env.PORT ?? 3333."
+    },
+    {
+      "key": "basePath",
+      "value": "",
+      "type": "string",
+      "description": "Prefixo opcional para futuras versoes da API, por exemplo /api/v1."
+    },
+    {
+      "key": "questionId",
+      "value": "question-123",
+      "type": "string",
+      "description": "ID usado para testar o endpoint GET /questions/:id."
+    },
+    {
+      "key": "nodeEnv",
+      "value": "development",
+      "type": "string",
+      "description": "Valor atual encontrado no arquivo .env do projeto."
+    },
+    {
+      "key": "otelServiceName",
+      "value": "rocketseat-ddd-api",
+      "type": "string",
+      "description": "Valor atual encontrado no arquivo .env do projeto."
+    },
+    {
+      "key": "otelResourceAttributes",
+      "value": "deployment.environment=development,service.version=0.1.0",
+      "type": "string",
+      "description": "Valor atual encontrado no arquivo .env do projeto."
+    },
+    {
+      "key": "otelExporterOtlpProtocol",
+      "value": "http/protobuf",
+      "type": "string",
+      "description": "Valor atual encontrado no arquivo .env do projeto."
+    },
+    {
+      "key": "otelExporterOtlpEndpoint",
+      "value": "http://localhost:4320",
+      "type": "string",
+      "description": "Valor atual encontrado no arquivo .env do projeto."
+    },
+    {
+      "key": "lastHealthStatus",
+      "value": "",
+      "type": "string",
+      "description": "Preenchida automaticamente pelos testes do endpoint /health."
+    },
+    {
+      "key": "lastQuestionId",
+      "value": "",
+      "type": "string",
+      "description": "Preenchida automaticamente pelos testes do endpoint /questions/:id."
+    },
+    {
+      "key": "lastQuestionTitle",
+      "value": "",
+      "type": "string",
+      "description": "Preenchida automaticamente pelos testes do endpoint /questions/:id."
+    }
+  ],
+  "item": [
+    {
+      "name": "System",
+      "description": "Endpoints tecnicos e de verificacao da aplicacao.",
+      "item": [
+        {
+          "name": "GET /health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const data = pm.response.json();",
+                  "",
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type is JSON', function () {",
+                  "  pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('Payload contains status ok', function () {",
+                  "  pm.expect(data).to.have.property('status', 'ok');",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set('lastHealthStatus', data.status);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "description": "Verifica se a API esta de pe.\n\nImplementacao atual em src/app.ts:\n- Metodo: GET\n- Rota: /health\n- Resposta esperada: 200 com `{ \"status\": \"ok\" }`\n\nOs testes desta request validam status HTTP, content-type e o payload retornado.",
+            "url": "{{scheme}}://{{host}}:{{port}}{{basePath}}/health"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{scheme}}://{{host}}:{{port}}{{basePath}}/health"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"status\": \"ok\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Questions",
+      "description": "Endpoints relacionados a perguntas.",
+      "item": [
+        {
+          "name": "GET /questions/:id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const data = pm.response.json();",
+                  "const requestedId = pm.variables.get('questionId');",
+                  "",
+                  "pm.test('Status code is 200', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Content-Type is JSON', function () {",
+                  "  pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});",
+                  "",
+                  "pm.test('Response echoes the requested questionId', function () {",
+                  "  pm.expect(data).to.have.property('questionId', requestedId);",
+                  "});",
+                  "",
+                  "pm.test('Response contains a non-empty title', function () {",
+                  "  pm.expect(data).to.have.property('title');",
+                  "  pm.expect(data.title).to.be.a('string').and.not.empty;",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set('lastQuestionId', data.questionId);",
+                  "pm.collectionVariables.set('lastQuestionTitle', data.title);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "description": "Busca uma pergunta pelo identificador informado na URL.\n\nImplementacao atual em src/app.ts:\n- Metodo: GET\n- Rota: /questions/:id\n- Parametro de rota: `id`\n- Resposta atual: 200 com `{ questionId, title }`\n\nComportamento validado diretamente na aplicacao em 2026-04-01:\n- `questionId` replica o valor enviado na URL\n- `title` retorna uma string nao vazia\n\nOs testes desta request validam status HTTP, content-type, o espelhamento do ID informado e a presenca do titulo.",
+            "url": "{{scheme}}://{{host}}:{{port}}{{basePath}}/questions/{{questionId}}"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": "{{scheme}}://{{host}}:{{port}}{{basePath}}/questions/{{questionId}}"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json; charset=utf-8"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"questionId\": \"question-123\",\n  \"title\": \"Pergunta de exemplo\"\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

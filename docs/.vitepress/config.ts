@@ -1,38 +1,78 @@
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
+  lang: 'pt-BR',
   title: 'Design Soft DDD',
-  description: 'Documentação do projeto com Domain-Driven Design',
+  description: 'Documentação técnica do projeto com DDD, OpenTelemetry e stack local de observabilidade',
 
   themeConfig: {
+    search: {
+      provider: 'local',
+    },
+    outline: {
+      level: [2, 3],
+      label: 'Nesta página',
+    },
     nav: [
       { text: 'Início', link: '/' },
-      { text: 'Domínio', link: '/dominio/entidades' },
-      { text: 'Arquitetura', link: '/arquitetura/organizacao' },
-      { text: 'Testes', link: '/testes/testes-unitarios' }
+      { text: 'Projeto', link: '/projeto/visao-geral' },
+      { text: 'OpenTelemetry', link: '/tecnologias/opentelemetry' },
+      { text: 'Arquitetura', link: '/arquitetura/visao-geral' },
+      { text: 'Infraestrutura', link: '/infraestrutura/stack-docker' },
+      { text: 'Troubleshooting', link: '/troubleshooting/observabilidade-e-docker' },
     ],
 
     sidebar: [
+      {
+        text: 'Projeto',
+        items: [
+          { text: 'Visão Geral', link: '/projeto/visao-geral' },
+          { text: 'Dependências e Scripts', link: '/projeto/dependencias-e-scripts' },
+        ],
+      },
+      {
+        text: 'OpenTelemetry',
+        items: [
+          { text: 'O que é OpenTelemetry', link: '/tecnologias/opentelemetry' },
+          { text: 'OpenTelemetry na Arquitetura', link: '/arquitetura/opentelemetry' },
+          { text: 'OpenTelemetry na Prática', link: '/arquitetura/opentelemetry-na-pratica' },
+        ],
+      },
+      {
+        text: 'Arquitetura',
+        items: [
+          { text: 'Visão Geral', link: '/arquitetura/visao-geral' },
+        ],
+      },
+      {
+        text: 'Infraestrutura',
+        items: [
+          { text: 'Stack Docker', link: '/infraestrutura/stack-docker' },
+          { text: 'Configurações da Stack', link: '/infraestrutura/configuracoes-da-stack' },
+        ],
+      },
       {
         text: 'Domínio',
         items: [
           { text: 'Entidades', link: '/dominio/entidades' },
           { text: 'Value Objects', link: '/dominio/value-objects' },
-          { text: 'Casos de Uso', link: '/dominio/casos-de-uso' }
-        ]
+          { text: 'Use Cases', link: '/dominio/use-cases' },
+        ],
       },
       {
-        text: 'Arquitetura',
+        text: 'Troubleshooting',
         items: [
-          { text: 'Organização', link: '/arquitetura/organizacao' }
-        ]
+          { text: 'Observabilidade e Docker', link: '/troubleshooting/observabilidade-e-docker' },
+        ],
       },
-      {
-        text: 'Testes',
-        items: [
-          { text: 'Testes Unitários', link: '/testes/testes-unitarios' }
-        ]
-      }
-    ]
-  }
+    ],
+    docFooter: {
+      prev: 'Página anterior',
+      next: 'Próxima página',
+    },
+    footer: {
+      message: 'Documentação técnica do estado atual do projeto e da stack de observabilidade.',
+      copyright: 'Design Soft DDD',
+    },
+  },
 })

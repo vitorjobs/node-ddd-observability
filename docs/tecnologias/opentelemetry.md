@@ -1,193 +1,194 @@
-# 📡 O que é OpenTelemetry?
-
-O **OpenTelemetry (OTel)** é um padrão aberto (open-source) para **coletar, gerar e exportar dados de observabilidade** de aplicações.
-
-Ele permite que você entenda:
-
-- 🔍 O que está acontecendo no sistema  
-- 🐢 Onde estão os gargalos  
-- 💥 Onde ocorrem erros  
-- 🔗 Como os serviços se comunicam  
-
+---
+outline: deep
 ---
 
-# 🧠 O conceito central (muito importante)
+# OpenTelemetry como tecnologia
 
-OpenTelemetry resolve um problema clássico:
+OpenTelemetry é o padrão aberto usado neste projeto para gerar, propagar e exportar telemetria.
 
-> “Cada ferramenta de monitoramento usa um formato diferente”
+## Por que começar por aqui
 
-Ele padroniza tudo.
+Antes de olhar a arquitetura implementada, é importante entender o problema que o OpenTelemetry resolve.
 
-👉 Ou seja: você instrumenta **uma vez só**, e pode enviar os dados para qualquer backend:
+Sem essa base, a instrumentação pode parecer excesso de código ou configuração. Com essa base, fica mais claro por que parte do monitoramento é automática e por que outra parte precisa ser modelada pela aplicação.
 
-- Prometheus (métricas)  
-- Grafana (visualização)  
-- Jaeger (tracing)  
-- Zipkin  
-- Datadog, New Relic, etc.  
+## O que ele resolve
 
----
+Sem OpenTelemetry, cada ferramenta costuma pedir um formato próprio de instrumentação.
 
-# 🧩 Os 3 pilares do OpenTelemetry
+Com OpenTelemetry:
 
-Essa é a base de tudo. Grave isso.
+- a aplicação produz telemetria em um padrão único
+- o destino pode ser trocado com menos acoplamento
+- traces, metrics e logs podem ser correlacionados
 
-## 1. 📊 Métricas (Metrics)
-
-Valores numéricos ao longo do tempo.
-
-**Exemplos:**
-- CPU usage  
-- Tempo de resposta da API  
-- Número de requisições  
-
-👉 Exemplo no seu contexto:
+## O problema clássico sem OpenTelemetry
 
 ```txt
-http_requests_total
-http_request_duration_seconds
+Aplicação
+   ->
+uma lib para métricas
+   ->
+outra lib para tracing
+   ->
+outra lib para logs
+   ->
+formatos diferentes
+   ->
+mais acoplamento
 ```
 
----
-
-## 2. 🔗 Tracing (Distributed Tracing)
-
-Rastreamento de uma requisição ponta a ponta.
-
-**Exemplo real:**
+Com OpenTelemetry, a ideia muda:
 
 ```txt
-[Frontend] → [API Node.js] → [Banco] → [Outro serviço]
+Aplicação
+   ->
+OpenTelemetry
+   ->
+Collector / backends
 ```
 
-Você consegue ver:
-- Quanto tempo cada etapa levou  
-- Onde travou  
-- Onde deu erro  
+## O que ele entrega na prática
 
-👉 Conceitos importantes:
-- **Trace** → requisição completa  
-- **Span** → cada etapa dentro do trace  
+- padronização de telemetria
+- correlação entre traces, logs e métricas
+- menor dependência de vendor
+- base para observabilidade desde ambientes locais até produção
 
----
+## Os três pilares
 
-## 3. 🧾 Logs (Logs)
+### Traces
 
-Eventos detalhados.
+Mostram o caminho de uma execução.
 
-**Exemplo:**
 ```txt
-Erro ao salvar usuário
-Timeout na API externa
+request
+   ->
+API
+   ->
+banco
+   ->
+API externa
 ```
 
-⚠️ Observação importante:  
-OpenTelemetry ainda está evoluindo bastante na parte de logs, mas já é suportado.
+### Metrics
 
----
+Mostram tendências agregadas ao longo do tempo.
 
-# ⚙️ Como o OpenTelemetry funciona (arquitetura)
+Exemplos:
 
-## Fluxo básico:
+- quantidade de requisições
+- duração
+- taxa de erro
+- throughput por operação
+
+### Logs
+
+Mostram eventos detalhados e contexto textual.
+
+Exemplos:
+
+- falha em uma operação
+- erro inesperado
+- mensagem operacional com `trace_id`
+
+## Como pensar nesses três pilares juntos
+
+```txt
+Métrica
+  -> "algo está piorando"
+
+Trace
+  -> "onde o fluxo ficou lento ou falhou"
+
+Log
+  -> "o que exatamente aconteceu"
+```
+
+Essa combinação é o que torna a observabilidade realmente útil.
+
+## Conceitos essenciais
+
+| Conceito | Significado |
+| --- | --- |
+| `Trace` | fluxo completo de uma execução |
+| `Span` | etapa individual dentro do trace |
+| `Resource` | identidade do processo ou serviço |
+| `Exporter` | componente que envia telemetria |
+| `Collector` | agente intermediário que recebe e redistribui dados |
+| `Instrumentation` | código ou biblioteca que produz telemetria |
+
+## Onde entra o Collector
+
+O Collector não é obrigatório em todos os cenários, mas ele é a abordagem mais flexível e profissional para evoluir observabilidade.
+
+Ele pode:
+
+- receber telemetria em OTLP
+- aplicar processamento
+- redistribuir para destinos diferentes
+- isolar a aplicação dos detalhes dos backends
+
+## Instrumentação automática x manual
+
+### Automática
+
+Boa para capturar:
+
+- requests HTTP
+- chamadas de bibliotecas suportadas
+- spans técnicos do runtime
+
+### Manual
+
+Boa para capturar:
+
+- nome da operação de negócio
+- contexto funcional relevante
+- métricas semânticas da aplicação
+
+## O que é automático e o que não é
+
+Exemplo mental:
+
+```txt
+Request HTTP /students
+   ->
+criar estudante
+   ->
+salvar no banco
+```
+
+O OpenTelemetry pode capturar automaticamente:
+
+- a entrada do request
+- o tempo total da requisição
+- a chamada ao banco, se a biblioteca tiver suporte
+
+Mas ele não sabe sozinho:
+
+- que aquilo representa `student.create`
+- qual recurso de negócio está envolvido
+- quais logs operacionais fazem sentido para a sua aplicação
+
+É por isso que projetos maduros combinam instrumentação automática com instrumentação manual.
+
+## Como este projeto usa OpenTelemetry
 
 ```txt
 Aplicação Node.js
-   ↓
-(OpenTelemetry SDK)
-   ↓
-(OpenTelemetry Collector - opcional)
-   ↓
-Backend (Grafana, Prometheus, Jaeger, etc.)
+   ->
+NodeSDK
+   ->
+OTel Collector
+   ->
+Tempo / Loki / Prometheus / Mimir
+   ->
+Grafana
 ```
 
----
+Leituras complementares:
 
-## 🧱 Componentes principais
-
-### 1. Instrumentação
-
-Código que coleta os dados.
-
-Pode ser:
-- Automática (HTTP, Express, Fastify, etc.)  
-- Manual (seu código de domínio)  
-
----
-
-### 2. SDK
-
-Biblioteca que processa os dados.
-
-No Node.js:
-
-```bash
-@opentelemetry/sdk-node
-```
-
----
-
-### 3. Exporters
-
-Responsáveis por enviar os dados.
-
-**Exemplo:**
-- Prometheus exporter  
-- OTLP exporter (padrão moderno)  
-
----
-
-### 4. Collector (opcional, mas recomendado em produção)
-
-Um “proxy” de observabilidade:
-
-- Recebe dados da aplicação  
-- Processa  
-- Envia para vários destinos  
-
-👉 Boa prática moderna:  
-> Use OTLP + Collector  
-
----
-
-# 🧠 Como isso se encaixa no seu projeto (DDD + Node.js)
-
-Aqui começa o nível avançado que você quer atingir.
-
-No seu projeto (DDD), o OpenTelemetry entra assim:
-
-## 📦 Camadas e observabilidade
-
-| Camada     | O que instrumentar               |
-| ---------- | -------------------------------- |
-| Controller | tempo de requisição, status HTTP |
-| Use Cases  | tempo de execução                |
-| Domain     | eventos importantes              |
-| Infra      | DB, HTTP, filas                  |
-
----
-
-## 💡 Exemplo prático
-
-Você pode medir:
-
-- Tempo de execução de um Use Case:
-
-```ts
-createQuestionUseCase.execute()
-```
-
-- Tempo de query no banco  
-- Tempo de chamada externa  
-
----
-
-# 🚀 Benefícios reais (nível produção)
-
-Implementando desde o início, você ganha:
-
-- 🔎 Debug MUITO mais rápido  
-- 📉 Detecção de gargalos  
-- 📊 Visibilidade real do sistema  
-- 🧠 Base para SRE / observabilidade madura  
-- ⚙️ Fácil integração com qualquer ferramenta  
+- [Visão Geral da Arquitetura](/arquitetura/visao-geral)
+- [OpenTelemetry na arquitetura](/arquitetura/opentelemetry)
+- [OpenTelemetry na prática](/arquitetura/opentelemetry-na-pratica)

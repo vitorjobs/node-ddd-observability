@@ -1,0 +1,516 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "description": "Guia de leitura para investigacao da camada de negocio.",
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "content": "### Como interpretar este dashboard\n- Aqui o foco nao e a rota HTTP, e sim a operacao de negocio.\n- **Execution Rate** mostra volume de execucao.\n- **Success Rate** e **Error Rate** mostram qualidade da operacao.\n- **Use Case P95** mostra custo medio alto da regra de negocio, mesmo quando a API continua respondendo.\n- Se o caso de uso estiver lento, abra logs e traces para ver a sequencia exata da execucao.",
+        "mode": "markdown"
+      },
+      "title": "Como Ler Casos De Uso",
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "description": "Execucoes por segundo do caso de uso filtrado. Use para saber se a operacao esta sob carga ou falhando em baixa escala.",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 5
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(designsoftddd_use_case_executions_total{app_use_case=~\"$use_case\",app_resource=~\"$resource\",app_action=~\"$action\"}[$__rate_interval]))",
+          "refId": "A"
+        }
+      ],
+      "title": "Execution Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "description": "Percentual de sucesso do caso de uso filtrado. Se cair, algo no fluxo de negocio esta degradando.",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 5
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "expr": "100 * (sum(rate(designsoftddd_use_case_executions_total{app_use_case=~\"$use_case\",app_resource=~\"$resource\",app_action=~\"$action\",app_outcome=\"success\"}[$__rate_interval])) / clamp_min(sum(rate(designsoftddd_use_case_executions_total{app_use_case=~\"$use_case\",app_resource=~\"$resource\",app_action=~\"$action\"}[$__rate_interval])), 0.000001))",
+          "refId": "A"
+        }
+      ],
+      "title": "Success Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "description": "Percentual de falha do caso de uso filtrado. Qualquer aumento sustentado aqui deve aparecer tambem nos logs estruturados.",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 5
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "expr": "100 * (sum(rate(designsoftddd_use_case_executions_total{app_use_case=~\"$use_case\",app_resource=~\"$resource\",app_action=~\"$action\",app_outcome=\"error\"}[$__rate_interval])) / clamp_min(sum(rate(designsoftddd_use_case_executions_total{app_use_case=~\"$use_case\",app_resource=~\"$resource\",app_action=~\"$action\"}[$__rate_interval])), 0.000001))",
+          "refId": "A"
+        }
+      ],
+      "title": "Error Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "description": "Tempo do percentil 95 da operacao de negocio. Se ele sobe e o HTTP nao sobe junto, ha custo interno oculto no fluxo.",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 3,
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 5
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(designsoftddd_use_case_duration_seconds_bucket{app_use_case=~\"$use_case\",app_resource=~\"$resource\",app_action=~\"$action\"}[$__rate_interval])))",
+          "refId": "A"
+        }
+      ],
+      "title": "Use Case P95",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "description": "Volume ao longo do tempo separado entre sucesso e erro. Serve para ver se a falha apareceu em pico ou de forma continua.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 10
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (app_outcome) (rate(designsoftddd_use_case_executions_total{app_use_case=~\"$use_case\",app_resource=~\"$resource\",app_action=~\"$action\"}[$__rate_interval]))",
+          "legendFormat": "{{app_outcome}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Executions by Outcome",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "description": "Comparacao entre p50, p95 e p99 do caso de uso. Distancia grande entre p95 e p99 indica poucos fluxos muito caros.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 10
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(designsoftddd_use_case_duration_seconds_bucket{app_use_case=~\"$use_case\",app_resource=~\"$resource\",app_action=~\"$action\"}[$__rate_interval])))",
+          "legendFormat": "p50",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(designsoftddd_use_case_duration_seconds_bucket{app_use_case=~\"$use_case\",app_resource=~\"$resource\",app_action=~\"$action\"}[$__rate_interval])))",
+          "legendFormat": "p95",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(designsoftddd_use_case_duration_seconds_bucket{app_use_case=~\"$use_case\",app_resource=~\"$resource\",app_action=~\"$action\"}[$__rate_interval])))",
+          "legendFormat": "p99",
+          "refId": "C"
+        }
+      ],
+      "title": "Use Case Duration Quantiles",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "description": "Mostra quais rotas estao acionando o caso de uso. Quando novas rotas surgirem, elas aparecerao aqui automaticamente.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (http_route) (rate(designsoftddd_use_case_executions_total{app_use_case=~\"$use_case\",app_resource=~\"$resource\",app_action=~\"$action\"}[$__rate_interval]))",
+          "legendFormat": "{{http_route}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Routes Executing This Use Case",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "description": "Lista os casos de uso mais lentos por p95. Bom painel para priorizar tuning quando houver muitos fluxos monitorados.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 18
+      },
+      "id": 9,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "topk(10, histogram_quantile(0.95, sum by (le, app_use_case) (rate(designsoftddd_use_case_duration_seconds_bucket[$__rate_interval]))))",
+          "legendFormat": "{{app_use_case}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Slowest Use Cases (P95)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "description": "Logs estruturados do caso de uso filtrado. Procure por `app_outcome=error` para encontrar falhas de negocio.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 26
+      },
+      "id": 10,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": true,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "expr": "{service_name=\"rocketseat-ddd-api\"} |= \"Use case\" |~ \"$use_case\"",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Use Case Logs",
+      "type": "logs"
+    },
+    {
+      "description": "Como sair do painel de negocio e abrir o fluxo completo no Tempo.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 26
+      },
+      "id": 11,
+      "options": {
+        "content": "### Quando abrir traces deste caso de uso\n- Abra o Tempo quando **Error Rate** sair de zero ou quando **Use Case P95** subir sem motivo claro.\n- No Explore, use `{ resource.service.name = \"rocketseat-ddd-api\" }` e foque em spans com `name = \"$use_case\"`.\n- Use o `trace_id` dos logs para cair no fluxo exato com menos tentativa e erro.",
+        "mode": "markdown"
+      },
+      "title": "Trace Playbook",
+      "type": "text"
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "tags": [
+    "designsoftddd",
+    "use-case",
+    "observability"
+  ],
+  "templating": {
+    "list": [
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "mimir"
+        },
+        "definition": "label_values(designsoftddd_use_case_executions_total, app_use_case)",
+        "includeAll": true,
+        "label": "Use Case",
+        "multi": true,
+        "name": "use_case",
+        "options": [],
+        "query": {
+          "query": "label_values(designsoftddd_use_case_executions_total, app_use_case)",
+          "refId": "var-use_case"
+        },
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "mimir"
+        },
+        "definition": "label_values(designsoftddd_use_case_executions_total, app_resource)",
+        "includeAll": true,
+        "label": "Resource",
+        "multi": true,
+        "name": "resource",
+        "options": [],
+        "query": {
+          "query": "label_values(designsoftddd_use_case_executions_total, app_resource)",
+          "refId": "var-resource"
+        },
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "mimir"
+        },
+        "definition": "label_values(designsoftddd_use_case_executions_total, app_action)",
+        "includeAll": true,
+        "label": "Action",
+        "multi": true,
+        "name": "action",
+        "options": [],
+        "query": {
+          "query": "label_values(designsoftddd_use_case_executions_total, app_action)",
+          "refId": "var-action"
+        },
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "timezone": "browser",
+  "title": "DesignSoftDDD Use Case Operations",
+  "uid": "designsoftddd-use-case-operations",
+  "version": 1,
+  "weekStart": ""
+}

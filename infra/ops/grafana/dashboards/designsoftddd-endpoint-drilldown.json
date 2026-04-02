@@ -1,0 +1,542 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "description": "Guia de leitura para investigacao por endpoint.",
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "content": "### Como investigar um endpoint\n- Selecione uma `Route` e, se quiser, reduza por `Method`.\n- Veja primeiro **4xx**, **5xx** e **P95**. Eles respondem se o problema e contrato, falha ou lentidao.\n- Use os graficos por status e latencia para entender se o problema e constante ou em picos.\n- Feche a analise com logs do endpoint e traces do caso de uso associado.",
+        "mode": "markdown"
+      },
+      "title": "Como Ler O Drilldown",
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "description": "Volume por segundo do endpoint filtrado. Serve para saber se a lentidao aparece sob carga alta ou baixa.",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 5
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(designsoftddd_http_server_requests_total{http_route=~\"$route\",http_method=~\"$method\"}[$__rate_interval]))",
+          "refId": "A"
+        }
+      ],
+      "title": "Selected Request Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "description": "Percentual 4xx do endpoint filtrado. Alto aqui normalmente significa validacao, autenticacao ou contrato sendo violado.",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 5
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "expr": "100 * (sum(rate(designsoftddd_http_server_requests_total{http_route=~\"$route\",http_method=~\"$method\",http_status_class=\"4xx\"}[$__rate_interval])) / clamp_min(sum(rate(designsoftddd_http_server_requests_total{http_route=~\"$route\",http_method=~\"$method\"}[$__rate_interval])), 0.000001))",
+          "refId": "A"
+        }
+      ],
+      "title": "4xx Ratio",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "description": "Percentual 5xx do endpoint filtrado. Se subir, abra logs e traces imediatamente.",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 5
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "expr": "100 * (sum(rate(designsoftddd_http_server_requests_total{http_route=~\"$route\",http_method=~\"$method\",http_status_class=\"5xx\"}[$__rate_interval])) / clamp_min(sum(rate(designsoftddd_http_server_requests_total{http_route=~\"$route\",http_method=~\"$method\"}[$__rate_interval])), 0.000001))",
+          "refId": "A"
+        }
+      ],
+      "title": "5xx Ratio",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "description": "P95 do endpoint filtrado. Se este valor subir com 5xx zerado, o problema costuma ser performance e nao indisponibilidade.",
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 3,
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 5
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(designsoftddd_http_server_duration_seconds_bucket{http_route=~\"$route\",http_method=~\"$method\"}[$__rate_interval])))",
+          "refId": "A"
+        }
+      ],
+      "title": "Endpoint P95 Latency",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "description": "Mostra se o endpoint esta respondendo majoritariamente com sucesso, erro de cliente ou erro de servidor.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 10
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (http_status_class) (rate(designsoftddd_http_server_requests_total{http_route=~\"$route\",http_method=~\"$method\",http_status_class=~\"$status_class\"}[$__rate_interval]))",
+          "legendFormat": "{{http_status_class}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Requests by Status Class",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "description": "Compare p50, p95 e p99 do endpoint. Distancia grande entre eles indica poucos requests muito mais lentos que o normal.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 10
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(designsoftddd_http_server_duration_seconds_bucket{http_route=~\"$route\",http_method=~\"$method\"}[$__rate_interval])))",
+          "legendFormat": "p50",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(designsoftddd_http_server_duration_seconds_bucket{http_route=~\"$route\",http_method=~\"$method\"}[$__rate_interval])))",
+          "legendFormat": "p95",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(designsoftddd_http_server_duration_seconds_bucket{http_route=~\"$route\",http_method=~\"$method\"}[$__rate_interval])))",
+          "legendFormat": "p99",
+          "refId": "C"
+        }
+      ],
+      "title": "Latency Distribution for Selected Endpoint",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "description": "Detalha o status final do endpoint. Bom para separar, por exemplo, um 404 esperado de um 500 inesperado.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 18
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (http_status_code) (rate(designsoftddd_http_server_requests_total{http_route=~\"$route\",http_method=~\"$method\"}[$__rate_interval]))",
+          "legendFormat": "{{http_status_code}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Requests by Status Code",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "description": "Mostra quais casos de uso estao sendo executados pelo endpoint filtrado. Ajuda a mapear a regra de negocio afetada.",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 18
+      },
+      "id": 9,
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (app_use_case, app_outcome) (rate(designsoftddd_use_case_executions_total{http_route=~\"$route\"}[$__rate_interval]))",
+          "legendFormat": "{{app_use_case}} • {{app_outcome}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Use Cases Behind This Endpoint",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "description": "Logs estruturados do endpoint filtrado. Procure por `app_outcome=error` e use o `trace_id` para abrir o fluxo no Tempo.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 26
+      },
+      "id": 10,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": true,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "targets": [
+        {
+          "expr": "{service_name=\"rocketseat-ddd-api\"} |= \"Use case\" |~ \"$route\"",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Endpoint Logs",
+      "type": "logs"
+    },
+    {
+      "description": "Atalho mental para navegar do endpoint para o trace correspondente.",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 26
+      },
+      "id": 11,
+      "options": {
+        "content": "### Como fechar a investigacao\n- Se **5xx Ratio** subir, abra primeiro os logs do endpoint.\n- Copie um `trace_id` e abra o Explore do Tempo.\n- Quando houver um unico caso de uso dominante, filtre por `name = \"$use_case\"` no Tempo.\n- Compare o tempo do span filho do caso de uso com o tempo total HTTP para descobrir se a lentidao esta dentro ou fora da regra de negocio.",
+        "mode": "markdown"
+      },
+      "title": "Trace Drilldown",
+      "type": "text"
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "tags": [
+    "designsoftddd",
+    "endpoint",
+    "observability"
+  ],
+  "templating": {
+    "list": [
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "mimir"
+        },
+        "definition": "label_values(designsoftddd_http_server_requests_total, http_route)",
+        "includeAll": true,
+        "label": "Route",
+        "multi": true,
+        "name": "route",
+        "options": [],
+        "query": {
+          "query": "label_values(designsoftddd_http_server_requests_total, http_route)",
+          "refId": "var-route"
+        },
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "mimir"
+        },
+        "definition": "label_values(designsoftddd_http_server_requests_total, http_method)",
+        "includeAll": true,
+        "label": "Method",
+        "multi": true,
+        "name": "method",
+        "options": [],
+        "query": {
+          "query": "label_values(designsoftddd_http_server_requests_total, http_method)",
+          "refId": "var-method"
+        },
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "mimir"
+        },
+        "definition": "label_values(designsoftddd_http_server_requests_total, http_status_class)",
+        "includeAll": true,
+        "label": "Status Class",
+        "multi": true,
+        "name": "status_class",
+        "options": [],
+        "query": {
+          "query": "label_values(designsoftddd_http_server_requests_total, http_status_class)",
+          "refId": "var-status_class"
+        },
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "mimir"
+        },
+        "definition": "label_values(designsoftddd_use_case_executions_total, app_use_case)",
+        "includeAll": true,
+        "label": "Use Case",
+        "multi": true,
+        "name": "use_case",
+        "options": [],
+        "query": {
+          "query": "label_values(designsoftddd_use_case_executions_total, app_use_case)",
+          "refId": "var-use_case"
+        },
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "timezone": "browser",
+  "title": "DesignSoftDDD Endpoint Drilldown",
+  "uid": "designsoftddd-endpoint-drilldown",
+  "version": 1,
+  "weekStart": ""
+}
