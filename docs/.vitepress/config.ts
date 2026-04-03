@@ -41,6 +41,7 @@ export default defineConfig({
         items: [
           { text: 'Visão Geral', link: '/projeto/visao-geral' },
           { text: 'Dependências e Scripts', link: '/projeto/dependencias-e-scripts' },
+          { text: 'Controle de Versão e Branches', link: '/projeto/controle-de-versao-e-branches' },
         ],
       },
       {
