@@ -1,4 +1,6 @@
 import type { FastifyInstance } from 'fastify'
+import { questionQueryService } from '../../application/services/question-query-service'
+import { bindRequestLogContext } from '../../infra/logger'
 import {
   runObservedOperation,
   type OperationTelemetryMetadata,
@@ -11,13 +13,21 @@ const sampleQuestionReadOperation: OperationTelemetryMetadata = {
   endpointGroup: 'questions',
 }
 
-export async function registerExampleRoutes(app: FastifyInstance) {
+export async function registerExampleRoutes(app: FastifyInstance<any, any, any, any>) {
   app.get('/questions/:id', {
     config: {
       telemetry: sampleQuestionReadOperation,
     },
   }, async (request) => {
     const { id } = request.params as { id: string }
+    const userIdHeader = request.headers['x-user-id']
+    const userId = Array.isArray(userIdHeader) ? userIdHeader[0] : userIdHeader
+
+    if (userId) {
+      bindRequestLogContext({
+        user_id: userId,
+      })
+    }
 
     return runObservedOperation(request, {
       ...sampleQuestionReadOperation,
@@ -31,10 +41,7 @@ export async function registerExampleRoutes(app: FastifyInstance) {
         resource_id: id,
       },
     }, async (span) => {
-      const question = {
-        questionId: id,
-        title: 'Pergunta de exemplo',
-      }
+      const question = await questionQueryService.findById(id)
 
       span.setAttribute('app.resource.name', 'question')
       span.setAttribute('app.resource.id', question.questionId)

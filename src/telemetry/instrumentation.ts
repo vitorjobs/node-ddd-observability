@@ -28,6 +28,8 @@ export const sdk = new NodeSDK({
         logHook: (_span, record) => {
           record['service.name'] = process.env.OTEL_SERVICE_NAME ?? 'rocketseat-ddd-api'
           record['service.namespace'] = 'designsoftddd'
+          record['deployment.environment.name'] = process.env.NODE_ENV ?? 'development'
+          record['service.version'] = process.env.npm_package_version ?? '1.0.0'
         },
       },
     }),

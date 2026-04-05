@@ -1,5 +1,6 @@
 import { metrics, SpanStatusCode, trace, type Attributes, type Span } from '@opentelemetry/api'
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
+import { getLogger } from '../infra/logger'
 
 // Padrao para novas rotas e operacoes:
 // 1. Declare `config.telemetry` na rota com operation/resource/action.
@@ -147,7 +148,7 @@ export function recordHttpServerRequestMetrics(
   httpServerDuration.record(durationInSeconds, attributes)
 }
 
-export function registerHttpTelemetry(app: FastifyInstance) {
+export function registerHttpTelemetry(app: FastifyInstance<any, any, any, any>) {
   app.addHook('onRequest', async (request) => {
     ;(request as InstrumentedRequest)[requestStartedAtSymbol] = process.hrtime.bigint()
   })
@@ -189,19 +190,22 @@ export async function runObservedOperation<T>(
   }, async (span) => {
     const startedAt = process.hrtime.bigint()
     let outcome = 'success'
+    const operationLogger = getLogger({
+      app_operation: options.operation,
+      app_use_case: options.operation,
+      app_resource: options.resource,
+      app_action: options.action,
+      app_route: route,
+    })
 
     try {
       const result = await execute(span)
 
-      request.log.info({
-        app_operation: options.operation,
-        app_use_case: options.operation,
-        app_resource: options.resource,
-        app_action: options.action,
-        app_route: route,
+      operationLogger.info({
+        event_name: 'application.operation.completed',
         app_outcome: outcome,
         ...options.logAttributes,
-      }, `Operation completed: ${options.operation} [${route}]`)
+      }, 'application.operation.completed')
 
       return result
     } catch (error) {
@@ -213,15 +217,12 @@ export async function runObservedOperation<T>(
         message: error instanceof Error ? error.message : 'Unknown error',
       })
 
-      request.log.error({
-        app_operation: options.operation,
-        app_use_case: options.operation,
-        app_resource: options.resource,
-        app_action: options.action,
-        app_route: route,
+      operationLogger.error({
+        event_name: 'application.operation.failed',
+        err: error,
         app_outcome: outcome,
         ...options.logAttributes,
-      }, `Operation failed: ${options.operation} [${route}]`)
+      }, 'application.operation.failed')
 
       throw error
     } finally {

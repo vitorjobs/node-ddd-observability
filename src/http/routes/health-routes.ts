@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 
-export async function registerHealthRoutes(app: FastifyInstance) {
+export async function registerHealthRoutes(app: FastifyInstance<any, any, any, any>) {
   app.get('/health', {
     config: {
       otel: false,

@@ -25,6 +25,7 @@ outline: deep
 | Biblioteca | Papel no projeto |
 | --- | --- |
 | `fastify` | Servidor HTTP da aplicação. |
+| `pino` | Logger estruturado principal da aplicação e base do `loggerInstance` do Fastify. |
 | `@fastify/otel` | Instrumentação do Fastify orientada ao ecossistema atual do framework. |
 | `@opentelemetry/api` | API base de tracing, metrics e logs. |
 | `@opentelemetry/sdk-node` | SDK principal do OpenTelemetry no Node.js. |
@@ -39,9 +40,20 @@ outline: deep
 | --- | --- |
 | `typescript` | Tipagem e compilação. |
 | `tsx` | Execução TypeScript no Node sem build prévio para desenvolvimento. |
+| `pino-pretty` | Renderização legível dos logs locais em `development`. |
 | `vitest` | Testes unitários. |
 | `vitepress` | Site da documentação. |
 | `@types/node` | Tipos do Node.js. |
+
+## Variáveis relevantes de logging
+
+| Variável | Papel |
+| --- | --- |
+| `LOG_LEVEL` | Nível principal de logging da aplicação. |
+| `APP_LOG_LEVEL` | Fallback legado mantido por compatibilidade. |
+| `NODE_ENV` | Define se a saída usa `pretty` ou JSON puro. |
+| `OTEL_SERVICE_NAME` | Nome do serviço exposto nos logs e traces. |
+| `OTEL_SERVICE_NAMESPACE` | Namespace semântico do serviço nos logs. |
 
 ## Regras gerais de uso
 
