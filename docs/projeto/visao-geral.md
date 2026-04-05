@@ -15,9 +15,9 @@ Este projeto combina três objetivos:
 | Área | Estado atual | Leitura prática |
 | --- | --- | --- |
 | Domínio | Inicial e funcional | Entidades, value object e dois use cases já existem. |
-| HTTP | Inicial | A aplicação já sobe com Fastify e possui rotas de exemplo. |
+| HTTP | Inicial | A aplicação já sobe com Fastify, logging estruturado e rotas de exemplo. |
 | Controllers | Ainda não implementados | Hoje o handler da rota faz o papel de borda da aplicação. |
-| Observabilidade | Bem estruturada | Já existe instrumentação automática e manual, Collector e dashboards. |
+| Observabilidade | Bem estruturada | Já existe instrumentação automática e manual, logger central, Collector e dashboards. |
 | Persistência | Não implementada | Ainda não há banco, repositórios ou ORMs conectados. |
 | Infra local | Implementada | A stack Docker está pronta para testes locais da observabilidade. |
 | Documentação | Organizada | A documentação agora acompanha o código e a infraestrutura real. |
@@ -28,7 +28,9 @@ Este projeto combina três objetivos:
 src/
   app.ts
   server.ts
+  application/
   domain/
+  infra/logger/
   http/routes/
   telemetry/
 

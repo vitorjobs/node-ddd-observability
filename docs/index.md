@@ -10,8 +10,8 @@ hero:
       text: Visão Geral do Projeto
       link: /projeto/visao-geral
     - theme: alt
-      text: O que é OpenTelemetry
-      link: /tecnologias/opentelemetry
+      text: Logging com Pino
+      link: /arquitetura/logging
     - theme: alt
       text: Stack Docker
       link: /infraestrutura/stack-docker
@@ -36,9 +36,11 @@ features:
 :::tip Ordem sugerida
 1. Leia [Visão Geral do Projeto](/projeto/visao-geral).
 2. Siga para [O que é OpenTelemetry](/tecnologias/opentelemetry).
-3. Depois leia [OpenTelemetry na Arquitetura](/arquitetura/opentelemetry).
-4. Em seguida leia [Infraestrutura / Stack Docker](/infraestrutura/stack-docker).
-5. Para implementar novas rotas e use-cases, use [OpenTelemetry na Prática](/arquitetura/opentelemetry-na-pratica).
+3. Leia [Pino](/tecnologias/pino).
+4. Depois leia [Logging na Arquitetura](/arquitetura/logging).
+5. Em seguida leia [OpenTelemetry na Arquitetura](/arquitetura/opentelemetry).
+6. Continue em [Infraestrutura / Stack Docker](/infraestrutura/stack-docker).
+7. Para implementar novas rotas e use-cases, use [OpenTelemetry na Prática](/arquitetura/opentelemetry-na-pratica).
 :::
 
 ## Atalhos operacionais
@@ -56,6 +58,7 @@ npm run docs:dev
 - Estado atual do projeto e avaliação técnica.
 - Estrutura das pastas e responsabilidades por camada.
 - Dependências principais e scripts operacionais.
+- Implementação de logging estruturado com `Pino`.
 - Implementação da instrumentação automática e manual do OpenTelemetry.
 - Implementação detalhada do diretório `infra/` e dos containers Docker.
 - Troubleshooting para falhas comuns da stack de observabilidade.
